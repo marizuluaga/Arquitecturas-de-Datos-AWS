@@ -112,8 +112,5 @@ La ejecución validada del DAG reutilizó los datos existentes en S3. Quedan pen
 
 Las contraseñas y credenciales no se incluyen en el repositorio. Las configuraciones privadas se administran mediante archivos de entorno excluidos de Git y AWS Secrets Manager.
 
-## Estado del proyecto
+## Valeria Perez GR-01 Y Mariana Zuluaga
 
-Los dos proyectos cuentan con implementaciones funcionales y pruebas de ejecución en AWS.
-
-Algunos componentes y pruebas complementarias permanecen pendientes y se documentan explícitamente en `docs/ENTREGA_AWS.md`.
