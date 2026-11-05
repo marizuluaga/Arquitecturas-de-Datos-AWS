@@ -1,81 +1,119 @@
-# Data warehouse local de comercio electrónico colombiano
+# Arquitecturas de Datos en AWS
 
-PoC reproducible de ventas. Genera datos sintéticos en MySQL y MongoDB, los carga en DuckDB y construye una constelación de hechos con dbt. Airflow orquesta la extracción y las transformaciones; los scripts preparan y operan el entorno.
+**Universidad EIA | Ingeniería de Sistemas | 2026-2**
 
-Este README es el índice. Cada etapa tiene su guía en [docs/etapas/](docs/etapas/) con los comandos, el resultado esperado, las consultas para DBeaver o Compass y los archivos que intervienen.
+Este repositorio contiene dos proyectos desarrollados para la asignatura Arquitecturas de Datos, implementados mediante servicios de AWS, Python, Apache Airflow y herramientas de procesamiento de datos.
 
-## Ruta de aprendizaje
+## Proyecto 1 — Data Warehouse de Comercio Electrónico
 
-```mermaid
-flowchart TD
-    E1[1. Entorno con Docker] --> E2[2. Fuentes iniciales]
-    E2 --> E3[3. Extracción a raw]
-    E3 --> E4[4. Calidad y cuarentena]
-    E4 --> E5[5. Modelo estrella]
-    E5 --> E6[6. Pruebas dbt]
-    E6 --> E7[7. Idempotencia]
-    E7 --> E8[8. Cambios SCD tipo 2]
-    E8 --> E9[9. Carga incremental por lote]
-```
+### Objetivo
 
-## Requisitos
+Construir una solución de integración y análisis de datos de comercio electrónico, utilizando fuentes relacionales y documentales, procesos ETL, validaciones de calidad y un modelo dimensional.
 
-- Windows con Docker Desktop y WSL 2, o Docker Engine con Compose v2 en Linux.
-- Ejecutar los comandos desde la raíz del repositorio, dentro de WSL o de la terminal Linux.
-- Puertos libres: 8080 (Airflow, `AIRFLOW_UI_PORT`), 3306 (MySQL), 27017 (MongoDB) y 5433 (PostgreSQL de Airflow, `POSTGRES_HOST_PORT`).
-- DBeaver y MongoDB Compass para inspeccionar resultados. Cómo conectarlos está en [docs/connections.md](docs/connections.md).
-- No hace falta instalar Python ni dbt en el equipo: la imagen de Docker los contiene.
+### Arquitectura
 
-## Inicio rápido
+MySQL → Amazon RDS
 
-```bash
-./scripts/configure_environment.sh
-./scripts/run_pipeline.sh
-```
+MongoDB → Amazon DocumentDB
 
-El primer comando crea `.env` desde `docker/.env.example`. El segundo levanta los servicios, crea las fuentes, genera datos y dispara el DAG `ecommerce_pipeline`. La primera ejecución tarda más porque construye la imagen de Airflow.
+RDS + DocumentDB → Apache Airflow → Python → DuckDB → dbt → Modelos dimensionales
 
-Para recorrer las etapas una a una, sigue las guías en orden, empezando por [01_entorno](docs/etapas/01_entorno.md).
+### Implementación y resultados
 
-## Etapas
+- Amazon RDS MySQL: 446 registros migrados.
+- Amazon DocumentDB: 666 documentos migrados.
+- Extracción desde ambas fuentes de AWS.
+- Orquestación mediante Apache Airflow.
+- Transformaciones y pruebas de calidad con dbt.
+- Modelos dimensionales, tablas de hechos y dimensiones.
+- Procesos de cuarentena, validación y snapshots.
+- Ejecución exitosa de los DAG:
+  - `ecommerce_pipeline`
+  - `extract_to_raw`
+  - `transform_warehouse`
 
-| # | Etapa | Qué compruebas | Guía |
-| --- | --- | --- | --- |
-| 1 | Entorno | Servicios activos, Airflow accesible y conexiones a las fuentes | [01_entorno.md](docs/etapas/01_entorno.md) |
-| 2 | Fuentes iniciales | Tablas y colecciones creadas, con datos sintéticos y defectos inyectados | [02_fuentes_iniciales.md](docs/etapas/02_fuentes_iniciales.md) |
-| 3 | Extracción a raw | Copia completa de las fuentes en el esquema `raw` de DuckDB | [03_extraccion_raw.md](docs/etapas/03_extraccion_raw.md) |
-| 4 | Calidad y cuarentena | Filas válidas en `intermediate` y rechazadas en `quarantine`, con motivo | [04_calidad_cuarentena.md](docs/etapas/04_calidad_cuarentena.md) |
-| 5 | Modelo estrella | Dimensiones, snapshots y hechos en `marts` | [05_modelo_estrella.md](docs/etapas/05_modelo_estrella.md) |
-| 6 | Pruebas dbt | Pruebas de unicidad, relaciones, valores y totales | [06_pruebas.md](docs/etapas/06_pruebas.md) |
-| 7 | Idempotencia | Repetir el pipeline no cambia los conteos | [07_idempotencia.md](docs/etapas/07_idempotencia.md) |
-| 8 | Cambios SCD tipo 2 | Un cliente y un producto conservan su historia | [08_cambios_scd2.md](docs/etapas/08_cambios_scd2.md) |
-| 9 | Carga incremental | Cada lote agrega filas a los tres hechos y repetirlo no cambia nada | [09_carga_incremental.md](docs/etapas/09_carga_incremental.md) |
+**Limitación:** el motor de transformación utilizado es DuckDB. Amazon Redshift no fue implementado. La integración directa del almacenamiento intermedio S3 al DAG también está pendiente.
 
-## Operación
+## Proyecto 2 — Data Lake de Noticias RSS
 
-| Objetivo | Comando |
-| --- | --- |
-| Levantar servicios sin regenerar fuentes | `./scripts/start_infrastructure.sh` |
-| Detener servicios conservando datos | `./scripts/stop_infrastructure.sh` |
-| Crear tablas MySQL y colecciones MongoDB | `./scripts/create_source_schema.sh` |
-| Regenerar datos sintéticos | `./scripts/generate_data.sh` |
-| Ejecutar el pipeline sin regenerar fuentes | `./scripts/run_pipeline.sh --existing-sources` |
-| Ejecutar dbt completo sobre el warehouse existente | `./scripts/run_dbt.sh` |
-| Borrar contenedores, volúmenes y datos locales | `./scripts/reset_environment.sh` |
+### Objetivo
 
-`run_pipeline.sh` sin argumentos ya ejecuta `start_infrastructure.sh`, `create_source_schema.sh` y `generate_data.sh`; no hace falta llamarlos antes. Sin `--existing-sources`, cada ejecución regenera las fuentes y elimina los lotes incrementales añadidos.
+Construir un Data Lake en AWS para almacenar, transformar, enriquecer y consultar noticias provenientes de canales RSS, utilizando una arquitectura de datos por capas.
 
-## Reglas para el laboratorio
+### Fuentes de información
 
-- DuckDB admite un solo escritor. Cierra la conexión de DBeaver antes de ejecutar el pipeline, o conéctate en modo solo lectura.
-- Los conteos de las guías corresponden a los valores por defecto (`--seed 42`) tras `reset_environment.sh` y `run_pipeline.sh`.
-- Si un conteo no coincide, revisa la etapa anterior antes de continuar.
-- `verify_incremental_load.sh --batch-id N` necesita un `N` que todavía no exista en las fuentes. Tras regenerar los datos, todos los números de lote vuelven a estar libres.
+Se utilizaron tres canales RSS del periódico El Tiempo:
 
-## Modelo y documentación de referencia
+- Colombia
+- Economía
+- Tecnología
 
-- [Arquitectura y flujo de datos](docs/architecture.md)
-- [Modelo de datos: estrella, SCD tipo 2, llaves subrogadas y fuentes](docs/data_model.md)
+### Arquitectura
+
+RSS → Python → Amazon S3 Bronze → Silver (Parquet) → Gold (Parquet)
+
+Silver → Amazon Comprehend → Silver enriquecido → Gold enriquecido
+
+Amazon S3 → AWS Glue Data Catalog → Amazon Athena
+
+Apache Airflow coordina y valida las etapas del procesamiento.
+
+### Implementación y resultados
+
+**Bronze**
+- Tres archivos RSS originales en XML.
+
+**Silver**
+- 30 noticias procesadas.
+- Limpieza y deduplicación por identificador basado en URL.
+- Almacenamiento en formato Parquet.
+
+**Gold**
+- Indicadores agregados por categoría.
+
+**Amazon Comprehend**
+- 30 noticias analizadas.
+- 141 entidades detectadas.
+- 372 frases clave identificadas.
+- Ningún error durante el análisis.
+
+**AWS Glue y Athena**
+- Base de datos: `noticias_lake`.
+- Tablas: `noticias_silver` y `noticias_gold`.
+- Consultas SQL ejecutadas exitosamente.
+
+**Apache Airflow**
+- DAG: `data_lake_noticias`.
+- Tareas ejecutadas exitosamente:
+  - `bronze_silver_gold`
+  - `comprehend`
+  - `validar_capas`
+
+La ejecución validada del DAG reutilizó los datos existentes en S3. Quedan pendientes pruebas completas de reprocesamiento y recuperación ante fallos.
+
+## Estructura del repositorio
+
+- `src/ecommerce_dw/`: fuentes, ingesta y transformaciones del Data Warehouse.
+- `src/dbt/`: modelos, pruebas, snapshots y macros de dbt.
+- `src/data_lake_noticias/`: ingesta RSS y enriquecimiento con Comprehend.
+- `src/airflow/dags/`: orquestación de ambos proyectos.
+- `docker/`: infraestructura y configuración de contenedores.
+- `docs/`: documentación técnica.
+- `scripts/`: comandos de ejecución y administración.
+
+## Documentación y evidencias
+
+- [Documentación de la entrega AWS](docs/ENTREGA_AWS.md)
+- [Evidencias técnicas de AWS y Airflow](EVIDENCIAS_ARQUITECTURAS_AWS.zip)
+- [Arquitectura del Data Warehouse](docs/architecture.md)
 - [Orquestación con Airflow](docs/airflow.md)
-- [Conexión desde DBeaver y Compass](docs/connections.md)
-- [Consultas analíticas de ejemplo](docs/analytical_queries.sql)
+
+## Seguridad
+
+Las contraseñas y credenciales no se incluyen en el repositorio. Las configuraciones privadas se administran mediante archivos de entorno excluidos de Git y AWS Secrets Manager.
+
+## Estado del proyecto
+
+Los dos proyectos cuentan con implementaciones funcionales y pruebas de ejecución en AWS.
+
+Algunos componentes y pruebas complementarias permanecen pendientes y se documentan explícitamente en `docs/ENTREGA_AWS.md`.
