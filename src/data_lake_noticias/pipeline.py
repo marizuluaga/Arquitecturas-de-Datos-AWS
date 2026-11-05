@@ -42,6 +42,15 @@ def save_parquet(key, frame):
     save_bytes(key, buffer.getvalue(), "application/octet-stream")
 
 
+# ¿
+# Permite conservar los registros originales del RSS.
+# Organiza las noticias según su fuente.
+# Registra la fecha de cada ejecución.
+# Queremos mantener la trazabilidad del procesamiento.
+# Utiliza identificadores únicos para evitar duplicados.
+# Evita sobrescribir información histórica.
+# ?
+
 print("=== BRONZE: RSS ORIGINALES ===")
 records = []
 errors = []
