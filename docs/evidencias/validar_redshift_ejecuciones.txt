@@ -1,0 +1,7 @@
+[2026-11-05T02:39:36.538+0000] {plugins.py:37} INFO - setup plugin alembic.autogenerate.schemas
+[2026-11-05T02:39:36.540+0000] {plugins.py:37} INFO - setup plugin alembic.autogenerate.tables
+[2026-11-05T02:39:36.540+0000] {plugins.py:37} INFO - setup plugin alembic.autogenerate.types
+[2026-11-05T02:39:36.540+0000] {plugins.py:37} INFO - setup plugin alembic.autogenerate.constraints
+[2026-11-05T02:39:36.541+0000] {plugins.py:37} INFO - setup plugin alembic.autogenerate.defaults
+[2026-11-05T02:39:36.541+0000] {plugins.py:37} INFO - setup plugin alembic.autogenerate.comments
+[{"dag_id": "validar_redshift", "run_id": "manual__2026-11-05T02:39:04+00:00", "state": "success", "execution_date": "2026-11-05T02:39:04+00:00", "start_date": "2026-11-05T02:39:05.018132+00:00", "end_date": "2026-11-05T02:39:09.041955+00:00"}]
