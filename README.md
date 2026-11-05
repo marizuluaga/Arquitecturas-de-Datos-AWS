@@ -114,3 +114,44 @@ Las contraseñas y credenciales no se incluyen en el repositorio. Las configurac
 
 ## Valeria Perez GR-01 Y Mariana Zuluaga
 
+<!-- INICIO REDSHIFT AWS -->
+## Amazon Redshift Serverless — Implementación validada
+
+El proyecto **Data Warehouse de Comercio Electrónico** incluye una implementación funcional de Amazon Redshift Serverless en la región `us-east-2`.
+
+**Arquitectura implementada:**
+
+Amazon RDS + Amazon DocumentDB → Extracción y transformación → Amazon S3 (Parquet) → Amazon Redshift Serverless → Validación SQL mediante Apache Airflow.
+
+### Resultados verificados
+
+| Tabla | Registros |
+|---|---:|
+| dim_customer | 50 |
+| dim_date | 1.095 |
+| dim_event_type | 3 |
+| dim_geography | 8 |
+| dim_product | 25 |
+| dim_sales_channel | 3 |
+| fct_sales | 256 |
+| fct_navigation_events | 503 |
+| fct_reviews | 153 |
+| **Total** | **2.096** |
+
+- Namespace: `dw-mariana`.
+- Workgroup: `dw-mariana-wg`.
+- Carga mediante SQL `COPY` desde archivos Parquet de Amazon S3.
+- Nueve tablas creadas y cargadas correctamente.
+- Validación SQL consolidada con resultado de 2.096 registros.
+- DAG `validar_redshift` ejecutado exitosamente en Apache Airflow.
+- Conexión de Airflow a Redshift mediante `boto3` y AWS IAM.
+
+### Evidencias
+
+- [Consulta SQL final](docs/evidencias/redshift_consulta_final.json)
+- [Registros verificados](docs/evidencias/redshift_registros.json)
+- [Ejecución del DAG](docs/evidencias/validar_redshift_ejecuciones.txt)
+- [Código del DAG](src/airflow/dags/validar_redshift.py)
+
+**Alcance:** la carga de Redshift y su validación automática están implementadas. Los modelos originales de dbt continúan ejecutándose sobre DuckDB; todavía no se ha validado una ejecución de dbt directamente contra Redshift.
+<!-- FIN REDSHIFT AWS -->
