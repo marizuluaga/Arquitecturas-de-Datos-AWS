@@ -1,11 +1,10 @@
-"""Valida las tablas dimensionales cargadas en Amazon Redshift Serverless."""
+"""Valida las nueve tablas del Data Warehouse en Redshift Serverless."""
 
-import json
 import logging
-import subprocess
 import time
 from datetime import datetime, timezone
 
+import boto3
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
@@ -28,18 +27,10 @@ TABLAS = [
 ]
 
 
-def ejecutar_aws(*argumentos):
-    proceso = subprocess.run(
-        ["aws", *argumentos, "--region", REGION, "--output", "json"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return json.loads(proceso.stdout)
-
-
 def validar_tablas():
-    """Comprueba mediante SQL que las nueve tablas contienen registros."""
+    """Consulta las nueve tablas y comprueba que contienen registros."""
+
+    cliente = boto3.client("redshift-data", region_name=REGION)
 
     consultas = [
         f"SELECT '{tabla}' AS tabla, COUNT(*) AS registros "
@@ -47,51 +38,39 @@ def validar_tablas():
         for tabla in TABLAS
     ]
 
-    sql = " UNION ALL ".join(consultas)
-
-    respuesta = ejecutar_aws(
-        "redshift-data",
-        "execute-statement",
-        "--workgroup-name", WORKGROUP,
-        "--database", DATABASE,
-        "--sql", sql,
+    respuesta = cliente.execute_statement(
+        WorkgroupName=WORKGROUP,
+        Database=DATABASE,
+        Sql=" UNION ALL ".join(consultas),
     )
 
     consulta_id = respuesta["Id"]
+    LOGGER.info("Consulta Redshift: %s", consulta_id)
 
     for _ in range(90):
-        estado = ejecutar_aws(
-            "redshift-data",
-            "describe-statement",
-            "--id", consulta_id,
-        )
+        estado = cliente.describe_statement(Id=consulta_id)
 
         if estado["Status"] == "FINISHED":
             break
 
         if estado["Status"] in ("FAILED", "ABORTED"):
             raise RuntimeError(
-                f"Consulta Redshift fallida: {estado.get('Error')}"
+                f"Consulta fallida: {estado.get('Error')}"
             )
 
         time.sleep(2)
     else:
         raise TimeoutError(
-            f"Consulta {consulta_id} todavía está ejecutándose"
+            f"Consulta {consulta_id} sigue en ejecución"
         )
 
-    resultado = ejecutar_aws(
-        "redshift-data",
-        "get-statement-result",
-        "--id", consulta_id,
-    )
+    resultado = cliente.get_statement_result(Id=consulta_id)
 
     totales = {}
 
     for fila in resultado["Records"]:
         nombre = fila[0]["stringValue"]
         cantidad = fila[1]["longValue"]
-
         totales[nombre] = cantidad
         LOGGER.info("%s: %s registros", nombre, cantidad)
 
@@ -100,26 +79,37 @@ def validar_tablas():
     if faltantes:
         raise ValueError(f"Faltan tablas: {sorted(faltantes)}")
 
-    vacias = [tabla for tabla, cantidad in totales.items() if cantidad == 0]
+    vacias = [
+        tabla for tabla, cantidad in totales.items()
+        if cantidad == 0
+    ]
 
     if vacias:
         raise ValueError(f"Tablas vacías: {vacias}")
 
+    total = sum(totales.values())
+
     LOGGER.info(
-        "Validación Redshift exitosa: %s tablas, %s registros",
+        "VALIDACION EXITOSA: %s tablas y %s registros",
         len(totales),
-        sum(totales.values()),
+        total,
     )
+
+    return {
+        "tablas": len(totales),
+        "registros": total,
+        "detalle": totales,
+    }
 
 
 with DAG(
     dag_id="validar_redshift",
-    description="Valida las nueve tablas del Data Warehouse en Redshift",
+    description="Valida las tablas del Data Warehouse en Redshift",
     start_date=datetime(2025, 1, 1, tzinfo=timezone.utc),
     schedule=None,
     catchup=False,
     max_active_runs=1,
-    tags=["redshift", "data-warehouse", "validacion"],
+    tags=["redshift", "data-warehouse"],
 ) as dag:
 
     validar = PythonOperator(
