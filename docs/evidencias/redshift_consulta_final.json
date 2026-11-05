@@ -1,0 +1,17 @@
+{
+    "Id": "8876864f-14c2-432e-8adb-8e6d470ad1ce",
+    "DbUser": "IAM:user_cli",
+    "Database": "ecommerce",
+    "Duration": 675941102,
+    "Status": "FINISHED",
+    "CreatedAt": "2026-11-04T21:18:44.499000-05:00",
+    "UpdatedAt": "2026-11-04T21:18:45.710000-05:00",
+    "RedshiftPid": 1073930357,
+    "HasResultSet": true,
+    "QueryString": "\nSELECT 'dim_customer' AS tabla, COUNT(*) AS registros FROM public.dim_customer\nUNION ALL SELECT 'dim_date', COUNT(*) FROM public.dim_date\nUNION ALL SELECT 'dim_event_type', COUNT(*) FROM public.dim_event_type\nUNION ALL SELECT 'dim_geography', COUNT(*) FROM public.dim_geography\nUNION ALL SELECT 'dim_product', COUNT(*) FROM public.dim_product\nUNION ALL SELECT 'dim_sales_channel', COUNT(*) FROM public.dim_sales_channel\nUNION ALL SELECT 'fct_sales', COUNT(*) FROM public.fct_sales\nUNION ALL SELECT 'fct_navigation_events', COUNT(*) FROM public.fct_navigation_events\nUNION ALL SELECT 'fct_reviews', COUNT(*) FROM public.fct_reviews\nORDER BY tabla;\n",
+    "ResultRows": 9,
+    "ResultSize": 296,
+    "RedshiftQueryId": 203310,
+    "WorkgroupName": "dw-mariana-wg",
+    "ResultFormat": "json"
+}

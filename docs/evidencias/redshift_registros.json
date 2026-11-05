@@ -1,0 +1,107 @@
+{
+    "Records": [
+        [
+            {
+                "stringValue": "dim_customer"
+            },
+            {
+                "longValue": 50
+            }
+        ],
+        [
+            {
+                "stringValue": "dim_date"
+            },
+            {
+                "longValue": 1095
+            }
+        ],
+        [
+            {
+                "stringValue": "dim_event_type"
+            },
+            {
+                "longValue": 3
+            }
+        ],
+        [
+            {
+                "stringValue": "dim_geography"
+            },
+            {
+                "longValue": 8
+            }
+        ],
+        [
+            {
+                "stringValue": "dim_product"
+            },
+            {
+                "longValue": 25
+            }
+        ],
+        [
+            {
+                "stringValue": "dim_sales_channel"
+            },
+            {
+                "longValue": 3
+            }
+        ],
+        [
+            {
+                "stringValue": "fct_navigation_events"
+            },
+            {
+                "longValue": 503
+            }
+        ],
+        [
+            {
+                "stringValue": "fct_reviews"
+            },
+            {
+                "longValue": 153
+            }
+        ],
+        [
+            {
+                "stringValue": "fct_sales"
+            },
+            {
+                "longValue": 256
+            }
+        ]
+    ],
+    "ColumnMetadata": [
+        {
+            "isCaseSensitive": true,
+            "isCurrency": false,
+            "isSigned": false,
+            "label": "tabla",
+            "name": "tabla",
+            "nullable": 1,
+            "precision": 21,
+            "scale": 0,
+            "schemaName": "",
+            "tableName": "",
+            "typeName": "varchar",
+            "length": 0
+        },
+        {
+            "isCaseSensitive": false,
+            "isCurrency": false,
+            "isSigned": true,
+            "label": "registros",
+            "name": "registros",
+            "nullable": 1,
+            "precision": 19,
+            "scale": 0,
+            "schemaName": "",
+            "tableName": "",
+            "typeName": "int8",
+            "length": 0
+        }
+    ],
+    "TotalNumRows": 9
+}
